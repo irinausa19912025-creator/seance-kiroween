@@ -1,0 +1,23 @@
+{
+  "name": "Sweep to Break of Structure",
+  "id": "sweep_bos",
+  "version": "0.1.0",
+  "params": [
+    {"key": "pool_len",   "type": "int", "default": 20, "min": 5,  "title": "Pool length (candles)"},
+    {"key": "window_len", "type": "int", "default": 12, "min": 1,  "title": "Setup window (candles after sweep)"}
+  ],
+  "definitions": {
+    "pool_high": "highest high of the previous pool_len closed candles",
+    "pool_low":  "lowest low of the previous pool_len closed candles",
+    "sweep_high": "high > pool_high AND close <= pool_high",
+    "sweep_low":  "low  < pool_low  AND close >= pool_low",
+    "both_sides_skipped": true,
+    "cancel_high": "a later high > sweep candle high",
+    "cancel_low":  "a later low  < sweep candle low",
+    "bos_high": "a later close < sweep candle low",
+    "bos_low":  "a later close > sweep candle high",
+    "expire_after": "window_len candles"
+  },
+  "events": ["SWEEP_HIGH", "SWEEP_LOW", "CANCEL", "BOS", "EXPIRE"],
+  "closed_candles_only": true
+}
