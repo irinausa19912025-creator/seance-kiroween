@@ -1,0 +1,13 @@
+SEANCE COMPARE  python reference vs mql5
+  bars    5000  from seance_bars.tsv  (header row skipped)
+  python  1098 events
+  mql5    1098 events  from mql5_events.tsv
+
+SWEEP ACCOUNTING: 2 sweep(s) ended with no resolution event.
+  A new sweep replaced a pending one, so the observation was discarded.
+    orphaned  2024.02.29 16:00  SWEEP_LOW
+    orphaned  2024.12.30 12:00  SWEEP_HIGH
+  This is a property of the rule, identical in all targets, so the
+  comparison below cannot see it. It is reported separately on purpose.
+
+VERDICT: AGREE - python and mql5 emit the same 1098 events, in the same order, on the same bar times.
