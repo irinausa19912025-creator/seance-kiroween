@@ -1,0 +1,3 @@
+__pycache__/
+*.pyc
+# .kiro is intentionally NOT ignored - Kiroween requires it in the repository
