@@ -13,6 +13,11 @@ can modify the project:
                   with an error naming it, not silently ignored.
   D  PARSED NOT   a whitespace-only edit to a predicate produces byte-identical
      PASTED       output, proving the expression is parsed rather than copied.
+  F  NO DEAD      EVERY predicate in the skeleton - not just the first one -
+     TEXT         changes the generated code of all three targets.  Comments are
+                  stripped before comparing, so a generator cannot pass by
+                  echoing the skeleton into a comment block.  This is the check
+                  that catches a rule frozen into the generator.
 
 Exit code 0 only if all four pass. Standard library only.
 """
@@ -91,6 +96,44 @@ def find_predicates(obj, path=()):
     elif isinstance(obj, str):
         if any(op in obj for op in OPS) and any(h in obj for h in EXPR_HINTS):
             yield path, obj
+
+
+def find_all_whens(obj, path=()):
+    """Every predicate, located by its key, not guessed from its text.
+
+    find_predicates() above looks for expression-shaped strings and misses
+    predicates built only from parameters (bars_since_entry >= window_len has
+    no price token in it).  Check F must not miss any, so it goes by the key.
+    """
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k == "when" and isinstance(v, str) and v.strip():
+                yield path + (k,), v
+            else:
+                yield from find_all_whens(v, path + (k,))
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            yield from find_all_whens(v, path + (i,))
+
+
+def code_only(name, text):
+    """The generated file with comments and blank lines removed.
+
+    Without this, a generator that writes the skeleton into a header comment
+    would make every target look like it changed while the logic stayed frozen.
+    """
+    marker = "#" if name.endswith(".py") else "//"
+    out = []
+    for line in text.splitlines():
+        s = line.strip()
+        if not s or s.startswith(marker):
+            continue
+        if marker in s:
+            s = s.split(marker, 1)[0].rstrip()
+            if not s:
+                continue
+        out.append(s)
+    return "\n".join(out)
 
 
 def get_at(obj, path):
@@ -304,6 +347,48 @@ def main():
             same = all(now.get(n) == t for n, t in base_files.items())
             say(same, "output byte-identical after reformatting",
                 "" if same else "the expression is being copied as text, not parsed")
+
+        # ---------- F. no dead text ----------
+        print()
+        print("F  NO DEAD TEXT - every predicate reaches all three targets")
+        all_preds = list(find_all_whens(skel))
+        print(f"   {len(all_preds)} predicate(s) declared in the skeleton")
+        base_code = {n: code_only(n, t) for n, t in base_files.items()}
+        dead = []
+        for idx, (ppath, pexpr) in enumerate(all_preds):
+            pdot = ".".join(str(x) for x in ppath)
+            pmut = flip_one_operator(pexpr)
+            if pmut == pexpr:
+                dead.append((pdot, "no operator to flip - cannot be tested", []))
+                print(f"   {pdot:26s} SKIPPED - nothing to mutate")
+                continue
+            w2 = fresh_copy(tmp, f"f{idx}")
+            sk2 = json.loads((w2 / SKEL).read_text())
+            set_at(sk2, ppath, pmut)
+            (w2 / SKEL).write_text(json.dumps(sk2, indent=2))
+            rc2, out2 = build(w2)
+            if rc2 != 0:
+                dead.append((pdot, "build.sh failed on the mutation", []))
+                print(f"   {pdot:26s} BUILD FAILED")
+                continue
+            now2 = {n: code_only(n, t) for n, t in snapshot(w2).items()}
+            frozen = sorted(n for n in base_code if now2.get(n) == base_code[n])
+            if frozen:
+                dead.append((pdot, "ignored by", frozen))
+            print(f"   {pdot:26s} {pexpr}  ->  {pmut}")
+            print(f"   {'':26s} {'reaches all three targets' if not frozen else 'DEAD TEXT for: ' + ', '.join(frozen)}")
+        if dead:
+            detail = "\n".join(
+                f"  {d}: {why}" + ((" " + ", ".join(tg)) if tg else "")
+                for d, why, tg in dead)
+            say(False, "every predicate changes the generated code",
+                "these predicates are dead text - the generated code does not\n"
+                "depend on them, so for that part the rule lives in the generator,\n"
+                "not in the skeleton:\n" + detail)
+        else:
+            say(True, f"all {len(all_preds)} predicates change the generated code",
+                "comments are stripped before comparing, so echoing the skeleton\n"
+                "into a comment block does not count as reaching the code")
 
     return finish()
 
