@@ -1,0 +1,6 @@
+SEANCE COMPARE  python reference vs mql5
+  bars    2000  from synthetic_bars.tsv  (header row skipped)
+  python  618 events
+  mql5    618 events  from synthetic_mql5_events.tsv
+
+VERDICT: AGREE - python and mql5 emit the same 618 events, in the same order, on the same bar times.

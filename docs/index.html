@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Séance — Live Séance</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>🕯️</text></svg>">
+<style>
+  :root{
+    --bg:#0e0d12; --panel:#16151c; --panel2:#1d1b24; --line:#2c2936;
+    --ink:#e8e6ef; --dim:#9b96ad; --faint:#6d6880;
+    --amber:#f0a73c; --green:#5fd3a0; --red:#f2607a; --violet:#9b7bd4;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink); min-height:100vh;
+    font:15px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background-image:radial-gradient(900px 500px at 15% -10%, #1b1826 0%, transparent 70%);
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 16px 64px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:22px}
+  h1{font-size:25px;margin:0 0 6px;letter-spacing:-.02em}
+  h1 .glyph{color:var(--amber)}
+  .tag{color:var(--dim);font-size:14.5px;margin:0;max-width:72ch}
+  .targets{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{font:12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;
+    border:1px solid var(--line);background:var(--panel);color:var(--dim);
+    padding:7px 10px;border-radius:999px}
+  .chip b{color:var(--ink);font-weight:600}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .card > h2{
+    font:12px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--faint);
+    margin:0;padding:13px 16px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .card .body{padding:16px}
+
+  label.rule{display:block;margin-bottom:12px}
+  label.rule span{display:block;font:11.5px/1.3 var(--mono);color:var(--faint);
+    letter-spacing:.05em;margin-bottom:5px}
+  input[type=text]{
+    width:100%;background:#100f15;border:1px solid var(--line);color:var(--ink);
+    font:13px/1.4 var(--mono);padding:9px 10px;border-radius:7px}
+  input[type=text]:focus{outline:none;border-color:var(--violet)}
+  input[type=text].bad{border-color:var(--red)}
+
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px}
+  button{
+    font:13px/1 inherit;font-weight:600;padding:11px 16px;border-radius:8px;cursor:pointer;
+    background:var(--amber);color:#1a1206;border:1px solid #c98825}
+  button:hover{filter:brightness(1.07)}
+  button:disabled{opacity:.5;cursor:default;filter:none}
+  button.ghost{background:transparent;color:var(--dim);border-color:var(--line)}
+
+  .verdict{margin-top:16px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .verdict .head{padding:12px 15px;font:13px/1.3 var(--mono);display:flex;
+    justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+  .verdict.agree .head{background:rgba(95,211,160,.1);color:var(--green)}
+  .verdict.changed .head{background:rgba(155,123,212,.12);color:var(--violet)}
+  .verdict.idle .head{background:var(--panel2);color:var(--dim)}
+  .verdict .note{padding:12px 15px;border-top:1px solid var(--line);color:var(--dim);font-size:13.5px}
+
+  table{width:100%;border-collapse:collapse;font:13px/1.4 var(--mono)}
+  th,td{text-align:right;padding:7px 10px;border-top:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left;color:var(--dim)}
+  thead th{color:var(--faint);font-weight:500;border-top:none;font-size:11.5px;
+    letter-spacing:.05em;text-transform:uppercase}
+
+  .tabs{display:flex;gap:2px;padding:10px 12px 0;background:var(--panel2);border-bottom:1px solid var(--line)}
+  .tabs button{background:transparent;border:1px solid transparent;border-bottom:none;color:var(--dim);
+    font:12px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:9px 13px;
+    border-radius:7px 7px 0 0;font-weight:500}
+  .tabs button[aria-selected=true]{background:var(--panel);border-color:var(--line);color:var(--ink)}
+  pre{margin:0;padding:15px;overflow:auto;max-height:430px;
+    font:12.4px/1.55 var(--mono);color:#cfcadd;white-space:pre}
+  pre mark{background:rgba(240,167,60,.17);color:var(--amber);border-radius:3px}
+
+  .boundary{margin-top:20px;border:1px solid var(--line);border-left:3px solid var(--amber);
+    border-radius:10px;background:var(--panel);padding:15px 17px}
+  .boundary h3{margin:0 0 8px;font-size:14px}
+  .boundary ul{margin:0;padding-left:20px;color:var(--dim);font-size:13.5px}
+  .boundary li{margin:4px 0}
+  footer{margin-top:26px;color:var(--faint);font-size:12.5px;display:flex;
+    gap:14px;flex-wrap:wrap;justify-content:space-between}
+  footer a{color:var(--dim)}
+  .boot{color:var(--dim);font:13px/1.4 var(--mono)}
+  .spin{display:inline-block;width:9px;height:9px;border-radius:50%;
+    background:var(--amber);margin-right:7px;animation:p 1.1s ease-in-out infinite}
+  @keyframes p{0%,100%{opacity:.25}50%{opacity:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1><span class="glyph">&#9790;</span> Séance — one rule, three implementations, one equivalence report</h1>
+  <p class="tag">A trading rule is written once, as data. Séance emits it as a Python reference,
+     an MQL5 expert and a TradingView Pine v6 indicator, then compares the event streams
+     candle by candle. On the synthetic example shipped here, Python and MQL5 matched on all
+     618 events; Pine was checked by hand, by event counts. The report is the product.</p>
+  <div class="targets">
+    <span class="chip">target <b>Python</b></span>
+    <span class="chip">target <b>MQL5</b></span>
+    <span class="chip">target <b>Pine v6</b></span>
+    <span class="chip">rule source <b>one JSON skeleton</b></span>
+  </div>
+</header>
+
+<p class="boot" id="boot"><span class="spin"></span>Summoning the Python runtime in your browser…</p>
+
+<div class="grid" id="app" hidden>
+  <section>
+    <div class="card">
+      <h2>The rule — edit any predicate</h2>
+      <div class="body">
+        <div id="fields"></div>
+        <div class="row">
+          <button id="run">Run the séance</button>
+          <button id="reset" class="ghost">Reset rule</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict idle" id="verdict">
+      <div class="head"><span id="vhead">Not run yet</span><span id="vsub"></span></div>
+      <div class="note" id="vnote">
+        Press <b>Run the séance</b>. The three implementations are generated from the rule above,
+        the Python one is executed here on 2,000 synthetic candles, and its events are compared
+        with a recorded run of the generated MQL5 expert inside MetaTrader&nbsp;5.
+      </div>
+      <table id="counts" hidden>
+        <thead><tr><th>Event</th><th>Python (now)</th><th>MQL5 (recorded)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="boundary">
+      <h3>What this page proves, and what it does not</h3>
+      <ul>
+        <li><b>Proved here, live:</b> the Python implementation generated from the rule above,
+            run on these candles in your browser.</li>
+        <li><b>Recorded, not re-run here:</b> the MQL5 side. MetaTrader 5 does not run in a browser,
+            so the event stream of the real terminal run is shipped as a file and compared against.</li>
+        <li><b>Checked by hand, once:</b> Pine. TradingView runs Pine only on its own platform, so the
+            emitted Pine was compiled there and its counters read manually.</li>
+        <li><b>Not claimed:</b> that any two implementations of any rule agree, or that the rule is
+            profitable. The candles are synthetic and carry no market data.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-t="pine" aria-selected="true">Pine v6</button>
+      <button role="tab" data-t="mql5" aria-selected="false">MQL5</button>
+      <button role="tab" data-t="python" aria-selected="false">Python</button>
+      <button role="tab" data-t="skeleton" aria-selected="false">Skeleton</button>
+    </div>
+    <pre id="out">The generated sources appear here after the first run.</pre>
+  </section>
+</div>
+
+<footer>
+  <span>Built with Kiro for Kiroween 2026 · category: Frankenstein</span>
+  <span>Synthetic candles, seed 20261104 · MIT licensed</span>
+</footer>
+</div>
+
+<script type="module">
+const BASE = "../";                       // repository root, relative to docs/
+const FILES = [
+  "rules/expr.py", "rules/model.py",
+  "generators/emit_python.py", "generators/emit_mql5.py", "generators/emit_pine.py",
+  "skeletons/sweep_bos.json",
+];
+const EVENT_NAMES = ["SWEEP_HIGH","SWEEP_LOW","BOS","CANCEL","EXPIRE"];
+
+const $ = (id) => document.getElementById(id);
+let pyodide, baseSkeleton, recorded = null, bars = null, lastGen = {};
+
+function esc(s){return s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+
+async function boot(){
+  const { loadPyodide } = await import("https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.mjs");
+  pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/" });
+
+  // mirror the repository into the in-browser filesystem, same paths
+  for (const f of FILES){
+    const text = await (await fetch(BASE + f)).text();
+    const dir = f.includes("/") ? f.slice(0, f.lastIndexOf("/")) : "";
+    if (dir) try { pyodide.FS.mkdir(dir); } catch(e){}
+    pyodide.FS.writeFile(f, text);
+  }
+  const barsText = await (await fetch(BASE + "demo/synthetic_bars.tsv")).text();
+  const evText   = await (await fetch(BASE + "demo/synthetic_mql5_events.tsv")).text();
+
+  bars = barsText.split(/\r?\n/).filter(Boolean).slice(1).map(l => {
+    const f = l.split("\t");
+    return [f[0], parseFloat(f[1]), parseFloat(f[2]), parseFloat(f[3]), parseFloat(f[4])];
+  });
+  // the expert writes from MetaTrader, so the file carries CRLF line endings
+  recorded = evText.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+                   .map(l => l.split("\t").map(s => s.trim()));
+
+  // hand the bars over as data, never as source code: a 2,000-row literal
+  // would be compiled by Python and blows the runtime's memory budget
+  pyodide.globals.set("BARS_TSV", barsText);
+  pyodide.runPython(`
+import sys, json
+sys.path.insert(0, "")
+from rules.model import from_dict
+import generators.emit_python as ep, generators.emit_mql5 as em, generators.emit_pine as epine
+
+BARS = []
+for _i, _line in enumerate(BARS_TSV.splitlines()):
+    if _i == 0 or not _line.strip():
+        continue
+    _f = _line.split("\\t")
+    BARS.append((_f[0], float(_f[1]), float(_f[2]), float(_f[3]), float(_f[4])))
+
+def build(skel_json):
+    skel = from_dict(json.loads(skel_json))
+    return {
+        "python": ep.generate(skel, "skeletons/sweep_bos.json"),
+        "mql5":   em.generate(skel, "skeletons/sweep_bos.json"),
+        "pine":   epine.generate(skel, "skeletons/sweep_bos.json"),
+    }
+
+def run_reference(src):
+    ns = {}
+    exec(src, ns)
+    return [list(e) for e in ns["run"](BARS)]
+`);
+  console.log("bars parsed in python:", pyodide.runPython("len(BARS)"));
+
+  baseSkeleton = JSON.parse(pyodide.FS.readFile("skeletons/sweep_bos.json", {encoding:"utf8"}));
+  renderFields(baseSkeleton);
+  $("boot").hidden = true;
+  $("app").hidden = false;
+}
+
+function predicates(skel){
+  const out = [];
+  skel.detections.forEach((d,i)   => out.push({path:["detections",i],   label:`detections[${i}] · ${d.event}`,   when:d.when}));
+  skel.resolutions.forEach((r,i)  => out.push({path:["resolutions",i],  label:`resolutions[${i}] · ${r.event} (${r.for})`, when:r.when}));
+  return out;
+}
+
+function renderFields(skel){
+  $("fields").innerHTML = predicates(skel).map((p,i) =>
+    `<label class="rule"><span>${esc(p.label)}</span>
+       <input type="text" data-i="${i}" value="${esc(p.when)}"></label>`).join("");
+}
+
+function currentSkeleton(){
+  const skel = JSON.parse(JSON.stringify(baseSkeleton));
+  const ps = predicates(skel);
+  document.querySelectorAll("#fields input").forEach(inp => {
+    const p = ps[+inp.dataset.i];
+    skel[p.path[0]][p.path[1]].when = inp.value;
+  });
+  return skel;
+}
+
+function unchanged(skel){
+  return JSON.stringify(skel) === JSON.stringify(baseSkeleton);
+}
+
+function showTab(name){
+  document.querySelectorAll(".tabs button").forEach(b =>
+    b.setAttribute("aria-selected", String(b.dataset.t === name)));
+  const text = name === "skeleton"
+    ? JSON.stringify(currentSkeleton(), null, 2)
+    : (lastGen[name] || "Run the séance to generate this target.");
+  $("out").innerHTML = esc(text);
+}
+
+function setVerdict(kind, head, sub, note, rows){
+  const v = $("verdict");
+  v.className = "verdict " + kind;
+  $("vhead").textContent = head;
+  $("vsub").textContent = sub || "";
+  $("vnote").innerHTML = note;
+  const table = $("counts");
+  if (!rows){ table.hidden = true; return; }
+  table.querySelector("tbody").innerHTML = rows.map(r =>
+    `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  table.hidden = false;
+}
+
+async function run(){
+  const btn = $("run");
+  btn.disabled = true; btn.textContent = "Running…";
+  document.querySelectorAll("#fields input").forEach(i => i.classList.remove("bad"));
+  try {
+    const skel = currentSkeleton();
+    let gen;
+    try {
+      pyodide.globals.set("SKEL_JSON", JSON.stringify(skel));
+      gen = pyodide.runPython("build(SKEL_JSON)").toJs({dict_converter:Object.fromEntries});
+    } catch (err){
+      const msg = String(err).trim().split("\n").pop();
+      setVerdict("changed", "Rejected, not ignored", "",
+        `The rule language refused that predicate and said where:<br><code>${esc(msg)}</code>`, null);
+      return;
+    }
+    lastGen = gen;
+    showTab(document.querySelector('.tabs button[aria-selected=true]').dataset.t);
+
+    pyodide.globals.set("GEN_PY", gen.python);
+    const events = pyodide.runPython("run_reference(GEN_PY)").toJs();
+    const mine = events.map(e => [String(e[0]), String(e[1])]);
+
+    const countOf = (list) => Object.fromEntries(EVENT_NAMES.map(n =>
+      [n, list.filter(e => e[1] === n).length]));
+    const cPy = countOf(mine), cMq = countOf(recorded);
+
+    if (unchanged(skel)){
+      const same = mine.length === recorded.length &&
+        mine.every((e,i) => e[0] === recorded[i][0] && e[1] === recorded[i][1]);
+      const rows = EVENT_NAMES.map(n => [n, cPy[n], cMq[n]])
+        .concat([["TOTAL", mine.length, recorded.length]]);
+      setVerdict(same ? "agree" : "changed",
+        same ? "AGREE — same events, same order, same bar times" : "DISAGREE",
+        `${mine.length} events on 2,000 candles`,
+        same
+          ? "The Python implementation was generated and executed just now, in this tab. The MQL5 column is the recorded output of the generated expert running inside MetaTrader 5 on the same candles."
+          : "The two streams differ — which is exactly what the harness exists to report.",
+        rows);
+    } else {
+      const rows = EVENT_NAMES.map(n => [n, cPy[n], "—"])
+        .concat([["TOTAL", mine.length, "—"]]);
+      setVerdict("changed", "Rule changed — all three targets re-emitted",
+        `${mine.length} events on 2,000 candles`,
+        "You edited the rule, so the recorded MQL5 run no longer describes it and the comparison is withheld rather than faked. Open the Pine and MQL5 tabs: both were rewritten from your edit, which is the point — the rule lives in the skeleton, not in the generators.",
+        rows);
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = "Run the séance";
+  }
+}
+
+$("run").addEventListener("click", run);
+$("reset").addEventListener("click", () => { renderFields(baseSkeleton); run(); });
+document.querySelectorAll(".tabs button").forEach(b =>
+  b.addEventListener("click", () => showTab(b.dataset.t)));
+
+boot().then(run).catch(err => {
+  $("boot").innerHTML = "Could not start the in-browser runtime: " + esc(String(err));
+});
+</script>
+</body>
+</html>

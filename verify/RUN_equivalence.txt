@@ -1,0 +1,3 @@
+cases: 468   evaluations: 37908   disagreements: 0
+
+PASS: emitted code agrees with the tree on every case and context.

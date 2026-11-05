@@ -1,0 +1,24 @@
+{
+  "name": "Sweep to Break of Structure",
+  "id": "sweep_bos",
+  "version": "0.2.0",
+  "params": [
+    {"key": "pool_len",   "type": "int", "default": 20, "min": 5, "title": "Pool length (candles)"},
+    {"key": "window_len", "type": "int", "default": 12, "min": 1, "title": "Setup window (candles after sweep)"}
+  ],
+  "closed_candles_only": true,
+  "pool": {"lookback_param": "pool_len"},
+  "detections": [
+    {"event": "SWEEP_HIGH", "side": "high", "when": "high > pool_high and close <= pool_high"},
+    {"event": "SWEEP_LOW",  "side": "low",  "when": "low < pool_low and close >= pool_low"}
+  ],
+  "detection_conflict": "skip_both",
+  "collision_policy": "overwrite",
+  "resolutions": [
+    {"event": "CANCEL", "for": "high", "when": "high > entry_high"},
+    {"event": "CANCEL", "for": "low",  "when": "low < entry_low"},
+    {"event": "BOS",    "for": "high", "when": "close < entry_low"},
+    {"event": "BOS",    "for": "low",  "when": "close > entry_high"},
+    {"event": "EXPIRE", "for": "any",  "when": "bars_since_entry >= window_len"}
+  ]
+}

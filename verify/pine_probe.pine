@@ -1,0 +1,81 @@
+// Seance verification harness - NOT a generated artifact.
+// Byte-identical event logic to out/sweep_bos.pine, plus counters,
+// so the Pine implementation can be compared against the Python reference
+// on the same exchange candles (BINANCE BTCUSDT).
+//@version=6
+indicator("Seance verify probe - sweep_bos", overlay = true, max_labels_count = 500)
+
+poolLen = input.int(20, "Pool length (candles)", minval = 5)
+winLen  = input.int(12, "Setup window (candles after sweep)", minval = 1)
+startTs = input.time(timestamp("2026-01-01 00:00 +0000"), "Count from (UTC)")
+
+var int    side = 0
+var int    sBar = 0
+var float  sHi  = na
+var float  sLo  = na
+
+var int cSH = 0
+var int cSL = 0
+var int cCA = 0
+var int cBO = 0
+var int cEX = 0
+var int nBar = 0
+var int tFirst = 0
+var int tLast  = 0
+
+f_mark(string txt, color col) =>
+    label.new(bar_index, na, txt, xloc = xloc.bar_index, yloc = yloc.belowbar,
+              style = label.style_label_up, color = col, textcolor = color.white, size = size.tiny)
+
+ph = ta.highest(high[1], poolLen)
+pl = ta.lowest(low[1],  poolLen)
+
+inWin = time >= startTs
+
+if barstate.isconfirmed
+    if inWin
+        nBar += 1
+        if tFirst == 0
+            tFirst := time
+        tLast := time
+    if side != 0
+        bool cancel = side == 1 ? high > sHi : low < sLo
+        bool bos    = side == 1 ? close < sLo : close > sHi
+        bool expire = bar_index - sBar >= winLen
+        if cancel
+            f_mark("CANCEL", color.new(color.gray, 20)), side := 0
+            if inWin
+                cCA += 1
+        else if bos
+            f_mark("BOS", color.new(color.teal, 20)), side := 0
+            if inWin
+                cBO += 1
+        else if expire
+            f_mark("EXPIRE", color.new(color.gray, 50)), side := 0
+            if inWin
+                cEX += 1
+    bool sweepHigh = high > ph and close <= ph
+    bool sweepLow  = low  < pl and close >= pl
+    if sweepHigh and not sweepLow
+        f_mark("SWEEP HIGH", color.new(color.orange, 20))
+        side := 1, sBar := bar_index, sHi := high, sLo := low
+        if inWin
+            cSH += 1
+    else if sweepLow and not sweepHigh
+        f_mark("SWEEP LOW", color.new(color.blue, 20))
+        side := 2, sBar := bar_index, sHi := high, sLo := low
+        if inWin
+            cSL += 1
+
+var table t = table.new(position.top_right, 2, 9, border_width = 1)
+if barstate.islast
+    table.cell(t, 0, 0, "SEANCE PINE PROBE", bgcolor = color.navy, text_color = color.white)
+    table.cell(t, 1, 0, syminfo.ticker + " " + timeframe.period, bgcolor = color.navy, text_color = color.white)
+    table.cell(t, 0, 1, "SWEEP_HIGH"), table.cell(t, 1, 1, str.tostring(cSH))
+    table.cell(t, 0, 2, "SWEEP_LOW"),  table.cell(t, 1, 2, str.tostring(cSL))
+    table.cell(t, 0, 3, "BOS"),        table.cell(t, 1, 3, str.tostring(cBO))
+    table.cell(t, 0, 4, "CANCEL"),     table.cell(t, 1, 4, str.tostring(cCA))
+    table.cell(t, 0, 5, "EXPIRE"),     table.cell(t, 1, 5, str.tostring(cEX))
+    table.cell(t, 0, 6, "bars counted"), table.cell(t, 1, 6, str.tostring(nBar))
+    table.cell(t, 0, 7, "first bar UTC"), table.cell(t, 1, 7, str.format_time(tFirst, "yyyy-MM-dd HH:mm", "UTC"))
+    table.cell(t, 0, 8, "last bar UTC"),  table.cell(t, 1, 8, str.format_time(tLast,  "yyyy-MM-dd HH:mm", "UTC"))
