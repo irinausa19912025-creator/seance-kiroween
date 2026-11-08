@@ -1,7 +1,9 @@
-# Séance — one rule, three hostile runtimes: two proved equal by machine, the third reconciled by hand
+# Séance — one rule, three hostile runtimes, one machine-checked equivalence report
 
-**Séance is one application: a rule compiler and an equivalence prover for three runtimes
-that cannot execute side by side.**
+**Séance is one application: a rule compiler and an equivalence checker for three runtimes
+that cannot execute side by side.** The automated run compares the generated Python
+reference, event by event, against the recorded event stream of the generated MQL5 expert;
+the generated Pine was compiled and checked by hand, once.
 
 A trading rule is written once, as data. Séance compiles it into a **Python reference**, an
 **MQL5 expert** (the closed MetaTrader 5 environment) and a **TradingView Pine v6**
