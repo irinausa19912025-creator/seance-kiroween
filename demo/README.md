@@ -8,7 +8,7 @@ third-party rights.
 
 ```
 python3 demo/make_bars.py demo/synthetic_bars.tsv 2000 20261104
-python3 verify/compare.py demo/synthetic_bars.tsv demo/synthetic_mql5_events.tsv
+python3 verify/compare.py
 ```
 
 Expected: `AGREE - python and mql5 emit the same 618 events, in the same order,

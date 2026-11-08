@@ -1,0 +1,51 @@
+SEANCE ACCEPTANCE TEST
+  repository: <repository root>
+  baseline:   618 events
+
+A  REGRESSION - unchanged skeleton reproduces the baseline
+  [PASS] event stream identical to the baseline (618 events)
+         the old collision policy is preserved; 0 detection(s) still end with no resolution
+
+E  SWEEP LIFECYCLE - every detection is resolved, replaced by a
+   declared policy, or open at the end of the feed
+   resolved 309   replaced 0   open at end 0   total detections 309
+  [PASS] no detection is discarded without a resolution
+
+B  RULE DRIVES CODE - changing one predicate changes all three targets
+   mutating detections.0.when
+     from: high > pool_high and close <= pool_high
+       to: high > pool_high and close > pool_high
+  [PASS] the Python behaviour changed
+         baseline 618 events, mutated 510 events
+  [PASS] the emitted SeanceSweepBos.mq5 changed
+  [PASS] the emitted ref_sweep_bos.py changed
+  [PASS] the emitted sweep_bos.pine changed
+
+C  REJECTION - an unsupported expression is refused, not ignored
+  [PASS] the error points at the offending token or its position
+         rules.model.SeanceModelError: detections[0] (SWEEP_HIGH): cannot parse predicate: unexpected symbol: '~' at position 17
+
+D  PARSED NOT PASTED - a whitespace-only edit changes nothing
+  [PASS] output byte-identical after reformatting
+
+F  NO DEAD TEXT - every predicate reaches all three targets
+   7 predicate(s) declared in the skeleton
+   detections.0.when          high > pool_high and close <= pool_high  ->  high > pool_high and close > pool_high
+                              reaches all three targets
+   detections.1.when          low < pool_low and close >= pool_low  ->  low < pool_low and close < pool_low
+                              reaches all three targets
+   resolutions.0.when         high > entry_high  ->  high <= entry_high
+                              reaches all three targets
+   resolutions.1.when         low < entry_low  ->  low >= entry_low
+                              reaches all three targets
+   resolutions.2.when         close < entry_low  ->  close >= entry_low
+                              reaches all three targets
+   resolutions.3.when         close > entry_high  ->  close <= entry_high
+                              reaches all three targets
+   resolutions.4.when         bars_since_entry >= window_len  ->  bars_since_entry < window_len
+                              reaches all three targets
+  [PASS] all 7 predicates change the generated code
+         comments are stripped before comparing, so echoing the skeleton
+         into a comment block does not count as reaching the code
+
+VERDICT: ACCEPTED - 9/9 checks passed. The skeleton drives the generated code.

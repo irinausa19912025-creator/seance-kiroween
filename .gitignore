@@ -3,3 +3,7 @@ __pycache__/
 out/seance_bars.tsv
 out/mql5_events.tsv
 # .kiro is intentionally NOT ignored — Kiroween requires it in the repository
+
+out/coinbase_btcusd_*.tsv
+verify/*_2026-11-04*.txt
+.seance_local.bundle

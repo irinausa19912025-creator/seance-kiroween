@@ -25,7 +25,7 @@ import sys, os, json, shutil, subprocess, tempfile, pathlib, re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BASELINE = ROOT / "verify" / "baseline_sweep_bos_events.tsv"
-BARS = ROOT / "out" / "seance_bars.tsv"
+BARS = ROOT / "demo" / "synthetic_bars.tsv"
 SKEL = "skeletons/sweep_bos.json"
 
 # tokens that mark a JSON string as a rule expression rather than prose

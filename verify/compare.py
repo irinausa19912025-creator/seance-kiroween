@@ -13,8 +13,8 @@ import sys, pathlib, difflib, importlib.util
 from collections import Counter
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-DEF_BARS = ROOT / "out" / "seance_bars.tsv"
-DEF_MQL5 = ROOT / "out" / "mql5_events.tsv"
+DEF_BARS = ROOT / "demo" / "synthetic_bars.tsv"
+DEF_MQL5 = ROOT / "demo" / "synthetic_mql5_events.tsv"
 DEF_REF = ROOT / "out" / "ref_sweep_bos.py"
 
 SWEEPS = ("SWEEP_HIGH", "SWEEP_LOW")

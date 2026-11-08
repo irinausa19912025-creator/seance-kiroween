@@ -1,5 +1,13 @@
+# Sabotage drill, 4 Nov 2026.  NOT a run of this repository.
+# A throwaway copy was altered twice to simulate a generator that stopped
+# obeying the skeleton:
+#   1. rules/model.py: the five resolution predicates were replaced by a frozen
+#      table inside the loader, so the skeleton text for them became dead.
+#   2. build.sh: the whole skeleton was echoed into a comment header of every
+#      emitted file, so each target "changed" without its logic changing.
+# Before check F this copy printed: ACCEPTED - 8/8.  Output below is after F.
 SEANCE ACCEPTANCE TEST
-  repository: /sessions/rcw-01pfb1oaqtstjsl4z3vvunrd/mnt/seance
+  repository: <throwaway copy>
   baseline:   1098 events
 
 A  REGRESSION - unchanged skeleton reproduces the baseline
@@ -29,7 +37,8 @@ C  REJECTION - an unsupported expression is refused, not ignored
          rules.model.SeanceModelError: detections[0] (SWEEP_HIGH): cannot parse predicate: unexpected symbol: '~' at position 17
 
 D  PARSED NOT PASTED - a whitespace-only edit changes nothing
-  [PASS] output byte-identical after reformatting
+  [FAIL] output byte-identical after reformatting
+         the expression is being copied as text, not parsed
 
 F  NO DEAD TEXT - every predicate reaches all three targets
    7 predicate(s) declared in the skeleton
@@ -38,17 +47,23 @@ F  NO DEAD TEXT - every predicate reaches all three targets
    detections.1.when          low < pool_low and close >= pool_low  ->  low < pool_low and close < pool_low
                               reaches all three targets
    resolutions.0.when         high > entry_high  ->  high <= entry_high
-                              reaches all three targets
+                              DEAD TEXT for: SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
    resolutions.1.when         low < entry_low  ->  low >= entry_low
-                              reaches all three targets
+                              DEAD TEXT for: SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
    resolutions.2.when         close < entry_low  ->  close >= entry_low
-                              reaches all three targets
+                              DEAD TEXT for: SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
    resolutions.3.when         close > entry_high  ->  close <= entry_high
-                              reaches all three targets
+                              DEAD TEXT for: SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
    resolutions.4.when         bars_since_entry >= window_len  ->  bars_since_entry < window_len
-                              reaches all three targets
-  [PASS] all 7 predicates change the generated code
-         comments are stripped before comparing, so echoing the skeleton
-         into a comment block does not count as reaching the code
+                              DEAD TEXT for: SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
+  [FAIL] every predicate changes the generated code
+         these predicates are dead text - the generated code does not
+         depend on them, so for that part the rule lives in the generator,
+         not in the skeleton:
+           resolutions.0.when: ignored by SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
+           resolutions.1.when: ignored by SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
+           resolutions.2.when: ignored by SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
+           resolutions.3.when: ignored by SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
+           resolutions.4.when: ignored by SeanceSweepBos.mq5, ref_sweep_bos.py, sweep_bos.pine
 
-VERDICT: ACCEPTED - 9/9 checks passed. The skeleton drives the generated code.
+VERDICT: REJECTED - 7/9 checks passed.
