@@ -1,7 +1,8 @@
 // Seance verification harness - NOT a generated artifact.
-// Byte-identical event logic to out/sweep_bos.pine, plus counters,
-// so the Pine implementation can be compared against the Python reference
-// on the same exchange candles (BINANCE BTCUSDT).
+// Hand-ported re-implementation of the same event logic as out/sweep_bos.pine,
+// plus counters; nothing keeps it in sync with the generated file - generating
+// this probe from the skeleton is the open task in .kiro/specs/04-probe-variant.md.
+// Used once, by hand, on exchange candles (BINANCE BTCUSDT).
 //@version=6
 indicator("Seance verify probe - sweep_bos", overlay = true, max_labels_count = 500)
 

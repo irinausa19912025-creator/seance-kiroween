@@ -1,4 +1,4 @@
-# Séance — one rule, three hostile runtimes, proved equal
+# Séance — one rule, three hostile runtimes: two proved equal by machine, the third reconciled by hand
 
 **Séance is one application: a rule compiler and an equivalence prover for three runtimes
 that cannot execute side by side.**
@@ -21,8 +21,8 @@ vendors maintain an MT5 version and a TradingView version of one rule and have n
 show a buyer that the two are the same tool; Séance turns that from a promise into a
 machine-checked fact.
 
-**Live demo:** [`docs/`](docs/) — the generators run in your browser; edit a predicate and
-watch all three targets change.
+**Live demo:** <https://irinausa19912025-creator.github.io/seance-kiroween/docs/> — the
+generators run in your browser; edit a predicate and watch all three targets change.
 
 ## Try it in 30 seconds
 
@@ -64,7 +64,7 @@ block does not count: comments are stripped before comparing.
 | `generators/emit_*.py` | three emitters: Python, MQL5, Pine v6 |
 | `verify/compare.py` | ordered event-stream comparison, event by event |
 | `verify/acceptance.py` | nine checks that the skeleton really drives the generated code |
-| `verify/test_emit_equivalence.py` | 468 generated cases against the parsed tree |
+| `verify/test_emit_equivalence.py` | 468 generated cases: the Python emitter against the parsed tree |
 | `demo/` | 2,000 synthetic candles, the recorded MQL5 run, and how to repeat both |
 
 ## The rule language
@@ -89,8 +89,9 @@ Three independent harnesses, all standard library:
    pasted); and that **every** predicate reaches all three targets, with comments stripped
    before comparing, so a generator cannot pass by echoing the skeleton into a comment block.
    That last check is the one that catches a rule frozen into the generator.
-3. **`test_emit_equivalence.py`** — 468 cases, 37,908 evaluations, comparing the emitted code
-   against the parsed expression tree.
+3. **`test_emit_equivalence.py`** — 468 cases, 37,908 evaluations, comparing the emitted
+   Python code against the parsed expression tree (the MQL5 and Pine emitters are covered
+   by the acceptance checks, not by this semantic test).
 
 Current state, on the data shipped here:
 
